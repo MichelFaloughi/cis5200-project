@@ -11,3 +11,25 @@ key: <YOUR API KEY HERE>
 so that you'll be able to query data from the Copernicus Climate Data Store (CDS), not to be confused with the Coperniucs Climate Change Service (CDS)
 to see how to query data from CDS, see the playground.ipynb notebook, where I'm trying a bunch of stuff
 
+---
+
+Questions:
+- How to make the compute not super expensive ?
+- What do we mean by 'baseline method' ? Is it the most accurate method ? How would we know before evaluating all of them ?
+- Wouldn't it be hard to find 5 machine learning methods that are suitable for our task ? What if there are only like 2 and the others aren't suitable ? Could we still use them and say why they are unsuitable ?
+
+Concerns:
+- Make sure one method is novel: a non-standard training loss, transfer learning, regularization, or such
+- Cite packages
+
+
+TO DO:
+- Check the litterature, the current state of the art, etc
+- Pre-process data.
+- Build 5 models
+- Build common evaluation metrics on which to test each model. Figures, etc. Like a 5-subplot plot for each. The losses, the results, etc
+
+
+Maybe as a step one, I can build an RNN from start to finish, including data preprocessing and post processing, then use that for all 4 other models
+
+
