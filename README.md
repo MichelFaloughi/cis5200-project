@@ -14,7 +14,7 @@ to see how to query data from CDS, see the playground.ipynb notebook, where I'm 
 ---
 
 Questions:
-- How to make the compute not super expensive ?
+- How to make the compute not super expensive ? Should we focus on a smaller specific geography ?
 - What do we mean by 'baseline method' ? Is it the most accurate method ? How would we know before evaluating all of them ?
 - Wouldn't it be hard to find 5 machine learning methods that are suitable for our task ? What if there are only like 2 and the others aren't suitable ? Could we still use them and say why they are unsuitable ?
 
