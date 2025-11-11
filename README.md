@@ -49,4 +49,12 @@ Models: TO DO:
 - Figure out what the baseline model is
 
 
-
+Hence, the next steps are:
+- Define the task formally in your notebook: “We predict next-hour 10m wind speed using past 24h ERA5 variables at location X.”
+- Build the dataset (single DataFrame used by all models).
+- Implement Baseline (Persistence) and evaluate it.
+- Implement Linear Regression + Random Forest + XGBoost → plug into shared eval.
+- Implement MLP.
+- (If time) Implement LSTM or 1D CNN as the 5th model.
+- Create the scorecard table + 1–2 plots.
+- Mirror this into Overleaf sections (Models + Evaluation).
