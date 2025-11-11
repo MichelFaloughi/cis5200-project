@@ -24,12 +24,29 @@ Concerns:
 
 
 TO DO:
-- Check the litterature, the current state of the art, etc
+- Check the literature, the current state of the art, etc
 - Pre-process data.
 - Build 5 models
 - Build common evaluation metrics on which to test each model. Figures, etc. Like a 5-subplot plot for each. The losses, the results, etc
 
 
 Maybe as a step one, I can build an RNN from start to finish, including data preprocessing and post processing, then use that for all 4 other models
+
+
+---
+
+Data: TO DO:
+- Figure out what subset data of ERA5 you want
+- Figure out if your data needs to be the same for the 5 models ?
+
+Eval: TO DO:
+- Figure out what evaluation metrics you want per model
+- Create a standardized evaluation 'score card' for all models
+- Then write some code to show the results side by side
+
+Models: TO DO:
+- Figure out what 5 models we want (RNN ? Ensemble ?)
+- Figure out what the baseline model is
+
 
 
