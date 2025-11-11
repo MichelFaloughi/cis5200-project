@@ -34,6 +34,13 @@ Maybe as a step one, I can build an RNN from start to finish, including data pre
 
 
 ---
+TO DO: Define the task formally:
+"We predict <TIME HORIZON> 10m wind speed using past 24h ERA5 <VARIABLES> at <LOCATION>
+time horizon: 1-hour ? Maybe do autoregressive rollouts ?
+
+
+
+
 
 Data: TO DO:
 - Figure out what subset data of ERA5 you want

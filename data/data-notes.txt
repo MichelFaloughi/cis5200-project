@@ -1,0 +1,4 @@
+All models are trained on the same feature set, just reshaped differently if needed
+
+What features will we use:
+

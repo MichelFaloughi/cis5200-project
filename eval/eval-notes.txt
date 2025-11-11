@@ -1,0 +1,2 @@
+For clarity in the report let's say something like:
+“All models are evaluated using MAE, RMSE, and R². Parametric models are trained using mean squared error unless otherwise specified.”

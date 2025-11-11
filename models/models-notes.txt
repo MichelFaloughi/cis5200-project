@@ -1,0 +1,48 @@
+THIS IS NOT YET OFFICIAL FEEL FREE TO CHANGE DEPENDING ON WHAT YOU LIKE TO DO
+
+
+model 0 (baseline): Predict $y_t$ as the last observed wind speed $y_{t-1}$.
+- Trivial
+- Very strong baseline in time series
+- Great for your narrative: “all models must beat this”
+
+model 1: Linear Regression
+- Simple, interpretable
+-Inputs: lagged features (past 24h u/v → wind speed)
+- Shows whether simple linear structure works
+
+model 2: Random Forest Regressor
+- Classic non-linear baseline
+- Captures interactions without heavy tuning
+- Good comparison vs linear
+
+
+model 3: Gradient Boosting (XGBoost / LightBGM)
+- Stronger tabular model
+- Often SOTA on structured data
+- You can say: “strong ensemble baseline against which to compare deep models"
+
+
+model 4: MLP (Feed forward net)
+- Input: flattened lagged features
+- 2–3 hidden layers, ReLU or GELU
+- Trained with Adam
+
+
+model 5: Sequence Model (LSTM/GRU/RNN/1D CNN?)
+- Feed in sequences of past timesteps, predict next-step wind speed.
+
+
+Why this is good/what we should strive for
+Covers classical → ML → ensemble → DL in a clean progression
+Gives faculty exactly what they want: comparative study, clear baselines, method variety
+
+
+
+--- 
+Loss functions: Typically will be different for each model, but some things to consider:
+- we want a physically motivated, wind-sensitive loss as a bonus.
+- Big errors when wind is strong matter more (e.g., for power, safety)
+- Underpredicting strong winds is worse than overpredicting (or vice versa).
+- Hybrid loss: MSE + something structure-aware (e.g., MAE, or slope / smoothness).
+- maybe apply novel losses to all models, or only the neural ones ? think about this later
