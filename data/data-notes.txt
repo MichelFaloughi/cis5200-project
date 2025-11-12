@@ -1,4 +1,16 @@
 All models are trained on the same feature set, just reshaped differently if needed
 
-What features will we use:
+So we'll make the dataset considering ONE LOCATION for prediction (the Tehapachi pass, since there is a big wind farm there) and if this becomes too mundane, we can switch from prediciting wind speeds there, to predicting wind power generation, which is a bit more interesting.
+We can also extend this 'one grid point' location to something else, maybe a 3x3 grid around it or something, we can get fancy
 
+data will be taken hourly (I'm still not convinced, I think there is quarter-hourly). Maybe hourly is good either way
+
+
+the source of the dataset:
+we're using the standard ERA5 single-levels API: (not the time-series one)
+(NO WE'RE NOT, NO LONGER) ERA5 hourly time-series data on single levels from 1940 to present: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-timeseries?tab=overview
+could've used many other
+
+discussion points in the report:
+- why did we use that specific ERA5 source, there are many others
+- 

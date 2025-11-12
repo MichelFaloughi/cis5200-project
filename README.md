@@ -65,3 +65,9 @@ Hence, the next steps are:
 - (If time) Implement LSTM or 1D CNN as the 5th model.
 - Create the scorecard table + 1–2 plots.
 - Mirror this into Overleaf sections (Models + Evaluation).
+
+
+
+
+Latest:
+- I'm having trouble downloading the dataset from cdsapi... my request are too large, I need to split them into years or months, etc. then concatenate everything...
