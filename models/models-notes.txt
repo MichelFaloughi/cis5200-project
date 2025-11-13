@@ -16,7 +16,6 @@ model 2: Random Forest Regressor
 - Captures interactions without heavy tuning
 - Good comparison vs linear
 
-
 model 3: Gradient Boosting (XGBoost / LightBGM)
 - Stronger tabular model
 - Often SOTA on structured data
