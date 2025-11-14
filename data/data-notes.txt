@@ -7,7 +7,7 @@ We can also extend this 'one grid point' location to something else, maybe a 3x3
 
 data will be taken hourly (I'm still not convinced, I think there is quarter-hourly). Maybe hourly is good either way
 
-
+Tehapachi wind facility coordinates: 35.042933, -118.258788
 the source of the dataset:
 we're using the standard ERA5 single-levels API: (not the time-series one)
 (NO WE'RE NOT, NO LONGER) ERA5 hourly time-series data on single levels from 1940 to present: https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-timeseries?tab=overview

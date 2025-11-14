@@ -15,12 +15,12 @@ to see how to query data from CDS, see the playground.ipynb notebook, where I'm 
 
 Questions:
 - How to make the compute not super expensive ? Should we focus on a smaller specific geography ?
-- What do we mean by 'baseline method' ? Is it the most accurate method ? How would we know before evaluating all of them ?
-- Wouldn't it be hard to find 5 machine learning methods that are suitable for our task ? What if there are only like 2 and the others aren't suitable ? Could we still use them and say why they are unsuitable ?
+- 
 
 Concerns:
 - Make sure one method is novel: a non-standard training loss, transfer learning, regularization, or such
 - Cite packages
+- I'm scared we won't get any meaningful results... Could we still get a full grades ? Wind speed prediction might be too chaotic...
 
 
 TO DO:
@@ -43,8 +43,7 @@ time horizon: 1-hour ? Maybe do autoregressive rollouts ?
 
 
 Data: TO DO:
-- Figure out what subset data of ERA5 you want
-- Figure out if your data needs to be the same for the 5 models ?
+- What we could do later is make a grid around the globe at a higher resolution, doesn't have to be ALL the data point that era5 has.
 
 Eval: TO DO:
 - Figure out what evaluation metrics you want per model
