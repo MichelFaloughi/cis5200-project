@@ -1,3 +1,5 @@
+testing
+
 All models are trained on the same feature set, just reshaped differently if needed
 
 So we'll make the dataset considering ONE LOCATION for prediction (the Tehapachi pass, since there is a big wind farm there) and if this becomes too mundane, we can switch from prediciting wind speeds there, to predicting wind power generation, which is a bit more interesting.
