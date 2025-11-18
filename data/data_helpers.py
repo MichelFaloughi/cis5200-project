@@ -55,8 +55,8 @@ ALL_FEATURES = [
         "2m_temperature",
         "surface_pressure"
     ] 
+
 # TODO: how are we gonna add the cyclical variables ?
-# TODO: stupid question - this is what we call features right ?
 
 TEHACHAPI_COORDS = (35.042933, -118.258788)
 TEHCHAPI_AREA = [35.05, -118.30, 35.00, -118.20]
@@ -125,7 +125,50 @@ def combine_nc_files(targets):
 
     ds = xr.open_mfdataset(
         paths,
-        combine="by_coords",   # align by valid_time / lat / lon
+        combine="by_coords",   # align by valid_time / lat / lon  TODO: are we sure this is it ? maybe by_coords is something built-in to netcfd files, cause we don't have a column name that says by_coords
         engine="netcdf4",      # explicit is nice but optional
     )
+
+
+    # we don't want ('number', 'expver'). Let's drop em like hot potato
+    variables_to_drop = ['number', 'expver']
+    ds = ds.drop_vars(variables_to_drop)
+    
     return ds
+
+
+def get_dataframe(
+        dataset:str="reanalysis-era5-single-levels",
+        variables=ALL_FEATURES,
+        years=ALL_YEARS,
+        month_groups=MONTH_GROUPS,
+        days=ALL_DAYS,
+        hours=ALL_HOURS,
+        # area=TEHCHAPI_AREA # hardcoded for now
+    ):
+
+    # load data
+    all_targets = load_data(
+        dataset=dataset,
+        variables=variables,
+        years=years,
+        month_groups=month_groups,
+        days=days,
+        hours=hours,
+        # area=area # hardcoded for now
+        )
+
+    # combine them
+    ds = combine_nc_files(all_targets)
+
+    # make them into a dataframe
+    df = ds.to_dataframe()
+    df = df.reset_index() # move all index levels (time, lat, lon) to regular columns
+    df.rename(columns={'valid_time': 'datetime'}, inplace=True)
+    df.drop(columns=['latitude', 'longitude'], inplace=True) # SINCE THEY ARE CONSTANT FOR NOW. maybe in the future we change
+    df.set_index('datetime', inplace=True)
+
+
+    return df
+
+
