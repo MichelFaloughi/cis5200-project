@@ -171,8 +171,6 @@ def get_dataframe(
     df = df.reset_index() # move all index levels (time, lat, lon) to regular columns
     df.rename(columns={'valid_time': 'datetime'}, inplace=True)
     df.drop(columns=['latitude', 'longitude'], inplace=True) # SINCE THEY ARE CONSTANT FOR NOW. maybe in the future we change
-    df.set_index('datetime', inplace=True)
-
 
     return df
 
