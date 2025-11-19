@@ -2,6 +2,7 @@ import cdsapi
 from pathlib import Path
 import xarray as xr
 import numpy as np
+import pandas as pd
 import sys
 import os
 sys.path.append(os.path.abspath(".."))
@@ -168,15 +169,42 @@ def get_dataframe(
 
     # make them into a dataframe
     df = ds.to_dataframe()
-    df = df.reset_index() # move all index levels (time, lat, lon) to regular columns
-    df.rename(columns={'valid_time': 'datetime'}, inplace=True)
-    df.drop(columns=['latitude', 'longitude'], inplace=True) # SINCE THEY ARE CONSTANT FOR NOW. maybe in the future we change
-    
-    # Calculate wind speed and duplicate + shift for target
-    df["wind_speed"] = np.sqrt(df["u10"]**2 + df["v10"]**2)
-    df["target_next_hour"] = df["wind_speed"].shift(-1)
-    df = df.iloc[:-1]   # removes the last row since doesn't have target
+
+    def beautify_df(df:pd.DataFrame):
+        df = df.copy()
+
+        df = df.reset_index() # move all index levels (time, lat, lon) to regular columns
+        df.rename(columns={'valid_time': 'datetime'}, inplace=True)
+        df.drop(columns=['latitude', 'longitude'], inplace=True) # SINCE THEY ARE CONSTANT FOR NOW. maybe in the future we change
+        
+        #### add cyclical encodings ####
+
+        df["datetime"] = pd.to_datetime(df["datetime"])
+        # Extract the components temporarily
+        hours = df["datetime"].dt.hour
+        months = df["datetime"].dt.month
+        doy = df["datetime"].dt.dayofyear
+
+        # Cyclical encodings ONLY
+        df["hour_sin"]  = np.sin(2 * np.pi * hours / 24)
+        df["hour_cos"]  = np.cos(2 * np.pi * hours / 24)
+
+        df["month_sin"] = np.sin(2 * np.pi * months / 12)
+        df["month_cos"] = np.cos(2 * np.pi * months / 12)
+
+        df["doy_sin"]   = np.sin(2 * np.pi * doy / 365)
+        df["doy_cos"]   = np.cos(2 * np.pi * doy / 365)
+        
+        
+        # Calculate wind speed and duplicate + shift for target
+        df["wind_speed"] = np.sqrt(df["u10"]**2 + df["v10"]**2)
+        df["target_next_hour"] = df["wind_speed"].shift(-1)
+        df = df.iloc[:-1]   # removes the last row since doesn't have target
+
+        return df
+        
+
+    df = beautify_df(df) # apply manipulations
 
     return df
 
-FullDataFrame = get_dataframe()
