@@ -171,7 +171,7 @@ def get_dataframe(
     df = df.reset_index() # move all index levels (time, lat, lon) to regular columns
     df.rename(columns={'valid_time': 'datetime'}, inplace=True)
     df.drop(columns=['latitude', 'longitude'], inplace=True) # SINCE THEY ARE CONSTANT FOR NOW. maybe in the future we change
-
+    
     # Calculate wind speed and duplicate + shift for target
     df["wind_speed"] = np.sqrt(df["u10"]**2 + df["v10"]**2)
     df["target_next_hour"] = df["wind_speed"].shift(-1)
