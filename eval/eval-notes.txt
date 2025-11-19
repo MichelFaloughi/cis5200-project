@@ -1,2 +1,4 @@
 For clarity in the report let's say something like:
 “All models are evaluated using MAE, RMSE, and R². Parametric models are trained using mean squared error unless otherwise specified.”
+
+TODO: test the evaluation grids on randomly generated data and random models to make sure everything works as expected

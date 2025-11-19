@@ -15,4 +15,31 @@ could've used many other
 
 discussion points in the report:
 - why did we use that specific ERA5 source, there are many others
-- 
+- 'lagged features' like the lagged wind speed ?
+- wind has strong daily and seasonal cycles
+
+
+
+TODO: consider adding more features, like time of day, day of year, etc. Those are called cyclical encodings ? 
+    # cyclical encodings
+    df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
+    df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
+    df["hour_sin"]  = np.sin(2 * np.pi * df["hour"] / 24)
+    df["hour_cos"]  = np.cos(2 * np.pi * df["hour"] / 24)
+    df["doy_sin"]   = np.sin(2 * np.pi * df["dayofyear"] / 365)
+    df["doy_cos"]   = np.cos(2 * np.pi * df["dayofyear"] / 365)
+
+features to consider in the future:
+- u, v, mslp, sp, 2m, 
+- pressure and pressure gradients ?
+- total_cloud_cover
+- surface_net_solar_radiation
+- 2m_relative_humidity
+- total_precipitation
+
+
+- lagged features ? (SUPER POWERFUL)
+df["wind_speed_lag_1h"] = df["wind_speed"].shift(1)
+df["wind_speed_lag_3h"] = df["wind_speed"].shift(3)
+df["wind_speed_lag_6h"] = df["wind_speed"].shift(6)
+
