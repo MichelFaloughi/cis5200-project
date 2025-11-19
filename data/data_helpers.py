@@ -2,6 +2,10 @@ import cdsapi
 from pathlib import Path
 import xarray as xr
 
+import sys
+import os
+sys.path.append(os.path.abspath(".."))
+
 ######################
 ## Global variables ##
 ######################
@@ -172,4 +176,4 @@ def get_dataframe(
 
     return df
 
-
+FullDataFrame = get_dataframe()

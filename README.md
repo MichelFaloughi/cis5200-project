@@ -69,4 +69,4 @@ Hence, the next steps are:
 
 
 Latest:
-- I'm having trouble downloading the dataset from cdsapi... my request are too large, I need to split them into years or months, etc. then concatenate everything...
+- make a requirements.txt file for the requirements like dask etc.

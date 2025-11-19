@@ -1,3 +1,7 @@
 # Ignore all NetCDF files
 *.nc
+
+# Ignore all .pyc files
+*.pyc
+
 venv/
