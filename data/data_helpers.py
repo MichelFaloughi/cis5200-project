@@ -176,7 +176,6 @@ def get_dataframe(
     df["wind_speed"] = np.sqrt(df["u10"]**2 + df["v10"]**2)
     df["target_next_hour"] = df["wind_speed"].shift(-1)
     df = df.iloc[:-1]   # removes the last row since doesn't have target
-    df = df.drop(["u10", "v10"], axis=1)
 
     return df
 
