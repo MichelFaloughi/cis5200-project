@@ -52,7 +52,7 @@ Eval: TO DO:
 
 Models: TO DO:
 - Figure out what 5 models we want (RNN ? Ensemble ?)
-- Figure out what the baseline model is
+- Figure out what the baseline model iscd
 
 
 Hence, the next steps are:

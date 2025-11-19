@@ -66,6 +66,8 @@ TEHCHAPI_AREA = [35.05, -118.30, 35.00, -118.20]
 ## Helper functions ##
 ######################
 
+DATA_DIR = Path(__file__).resolve().parent
+
 def load_data(                
         dataset:str="reanalysis-era5-single-levels",
         variables=ALL_FEATURES,
@@ -73,23 +75,22 @@ def load_data(
         month_groups=MONTH_GROUPS,
         days=ALL_DAYS,
         hours=ALL_HOURS,
-        # area=TEHCHAPI_AREA # hardcoded for now
     ):
-    """ 
-    downloads .nc data files half a year at a time 
-    returns list of all filepaths 
-    
     """
+    Downloads .nc data files into the data/ directory.
+    """
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    all_targets = []
 
-    all_targets = [] # keep track of all target to know what to merge later
-
-    client = cdsapi.Client()
+    client = cdsapi.Client(verify=False)
 
     for year in years:
         for i, month_group in enumerate(month_groups, start=1):
             
-            target = Path(f"era5_tehachapi_{year}_H{i}.nc")   # hardcoded tehachapi for now
+            # Save inside data/
+            target = DATA_DIR / f"era5_tehachapi_{year}_H{i}.nc"
             all_targets.append(target)
+
             if target.exists():
                 print(f"Skipping existing file {target}")
                 continue
@@ -101,9 +102,9 @@ def load_data(
                 "month": month_group,
                 "day": days,
                 "time": hours,
-                "data_format": "netcdf",                # maybe change data_format to format ? idts for now
+                "data_format": "netcdf",
                 "download_format": "unarchived",
-                "area": TEHCHAPI_AREA                   # hardcoded for now, 
+                "area": TEHCHAPI_AREA
             }
 
             print(f"Requesting {year}, chunk {i} → {target}")
