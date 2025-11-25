@@ -5,3 +5,4 @@
 *.pyc
 
 venv/
+.ipynb_checkpoints
