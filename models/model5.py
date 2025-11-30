@@ -1,11 +1,12 @@
-import os
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import TensorDataset, DataLoader
 from sklearn.preprocessing import StandardScaler
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class PositionalEncoding(nn.Module):
@@ -63,7 +64,8 @@ class TransformerModel:
         self.n_epochs = n_epochs
         self.learning_rate = learning_rate
         self.patience = patience
-        self.model_path = model_path or "models/model5/transformer_model.pt"
+        artifacts_dir = Path(__file__).resolve().parent / "artifacts" / "model5"
+        self.model_path = Path(model_path) if model_path else artifacts_dir / "transformer_model.pt"
         
         self.scaler = StandardScaler()
         self.model = None
@@ -172,13 +174,13 @@ class TransformerModel:
                 best_val = avg_val
                 wait = 0
                 # Save model
-                os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
+                self.model_path.parent.mkdir(parents=True, exist_ok=True)
                 torch.save({
                     'model_state_dict': self.model.state_dict(),
                     'scaler': self.scaler,
                     'n_features': self.n_features,
                     'feature_cols': self.feature_cols
-                }, self.model_path)
+                }, str(self.model_path))
             else:
                 wait += 1
             
@@ -186,7 +188,7 @@ class TransformerModel:
                 break
         
         # Load best model
-        checkpoint = torch.load(self.model_path)
+        checkpoint = torch.load(str(self.model_path))
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.scaler = checkpoint['scaler']
         
@@ -201,8 +203,8 @@ class TransformerModel:
         """
         if self.model is None:
             # Try to load from checkpoint
-            if os.path.exists(self.model_path):
-                checkpoint = torch.load(self.model_path, map_location=self.device)
+            if self.model_path.exists():
+                checkpoint = torch.load(str(self.model_path), map_location=self.device)
                 self.n_features = checkpoint.get('n_features')
                 self.feature_cols = checkpoint.get('feature_cols')
                 self.scaler = checkpoint['scaler']

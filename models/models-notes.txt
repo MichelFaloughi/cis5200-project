@@ -1,35 +1,27 @@
-THIS IS NOT YET OFFICIAL FEEL FREE TO CHANGE DEPENDING ON WHAT YOU LIKE TO DO
+model 0 — PersistenceBaseline
+- Predicts $y_t$ = last observed wind_speed ($y_{t-1}$).
+- Zero training cost; sanity check that every other model adds value.
 
+model 1 — LinearRegressionModel
+- Scikit-learn LinearRegression optionally preceded by StandardScaler.
+- Uses all engineered tabular features (cyclical time encodings + physical measurements, excluding `datetime`/`target_next_hour`).
+- Provides interpretable coefficients for narrative about linear structure.
 
-model 0 (baseline): Predict $y_t$ as the last observed wind speed $y_{t-1}$.
-- Trivial
-- Very strong baseline in time series
-- Great for your narrative: “all models must beat this”
+model 2 — RandomForestModel
+- Classic bagged decision-tree ensemble (`RandomForestRegressor`).
+- Same feature view as model 1; automatically captures nonlinear interactions and variable importance without heavy tuning.
 
-model 1: Linear Regression
-- Simple, interpretable
--Inputs: lagged features (past 24h u/v → wind speed)
-- Shows whether simple linear structure works
+model 3 — XGBoostModel
+- Gradient boosting over lagged versions of key meteorological variables (`u10`, `v10`, `t2m`, `sp`, `wind_speed`) plus cyclic time features.
+- Internally builds lag windows (default 24 h) and masks initial NaNs; strongest tree-based baseline.
 
-model 2: Random Forest Regressor
-- Classic non-linear baseline
-- Captures interactions without heavy tuning
-- Good comparison vs linear
+model 4 — MLPModel
+- Feed-forward network wrapped in a `StandardScaler → MLPRegressor` pipeline (default hidden sizes 200×100, ReLU, Adam).
+- Operates on the same flattened engineered features as models 1/2; good point of comparison vs ensembles.
 
-model 3: Gradient Boosting (XGBoost / LightBGM)
-- Stronger tabular model
-- Often SOTA on structured data
-- You can say: “strong ensemble baseline against which to compare deep models"
-
-
-model 4: MLP (Feed forward net)
-- Input: flattened lagged features
-- 2–3 hidden layers, ReLU or GELU
-- Trained with Adam
-
-
-model 5: Sequence Model (LSTM/GRU/RNN/1D CNN?)
-- Feed in sequences of past timesteps, predict next-step wind speed.
+model 5 — TransformerModel
+- PyTorch encoder-only transformer with positional encoding over feature dimension, trained on standardized tabular features.
+- Includes checkpointing/early stopping; loads from `models/artifacts/model5/transformer_model.pt` for reuse.
 
 
 Why this is good/what we should strive for
@@ -38,16 +30,11 @@ Gives faculty exactly what they want: comparative study, clear baselines, method
 
 
 
---- 
-Loss functions: Typically will be different for each model, but some things to consider:
-- we want a physically motivated, wind-sensitive loss as a bonus.
-- Big errors when wind is strong matter more (e.g., for power, safety)
-- Underpredicting strong winds is worse than overpredicting (or vice versa).
-- Hybrid loss: MSE + something structure-aware (e.g., MAE, or slope / smoothness).
-- maybe apply novel losses to all models, or only the neural ones ? think about this later
-
+---
+Loss functions: currently standard regression losses via scikit-learn/PyTorch (MAE/RMSE), but consider:
+- Wind-aware penalties (e.g., upweight strong-wind errors, asymmetric loss).
+- Hybrid objectives (MSE + MAE or smoothness regularizers) for the neural models.
 
 ---
-TODO: Think of how to standardize all models. All of them must have a 'predict' method, 
-so we can use it uniformly in evaluation. 
+All production models now expose consistent `fit()` / `predict()` APIs, enabling unified evaluation in `eval/eval.ipynb` and via `models.registry.get_model(...)`.
 
