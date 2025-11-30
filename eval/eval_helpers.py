@@ -56,8 +56,22 @@ def evaluate(model, X_train, y_train, X_test, y_test, model_name=None):
         y_pred = y_pred.values
     y_pred = np.array(y_pred).flatten()
     
-    # Compute metrics
-    metrics = compute_metrics(y_test, y_pred)
+    # Handle NaN predictions (e.g., from lagged features)
+    # Filter out NaN values for metric computation
+    valid_mask = ~np.isnan(y_pred)
+    if isinstance(y_test, pd.Series):
+        y_test_array = y_test.values
+    else:
+        y_test_array = np.array(y_test).flatten()
+    
+    if valid_mask.sum() == 0:
+        raise ValueError(f"All predictions are NaN for {model_name}")
+    
+    # Compute metrics only on valid predictions
+    metrics = compute_metrics(y_test_array[valid_mask], y_pred[valid_mask])
+    
+    # Update predictions to keep NaN for alignment with original test set
+    # (This allows plotting to handle NaN values appropriately)
     
     return {
         'model_name': model_name,
