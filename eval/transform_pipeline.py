@@ -79,20 +79,50 @@ class AsymmetricPostHocRegressor(BaseEstimator, RegressorMixin):
         Fit the post-hoc transform using validation data X, y.
 
         Assumes base_model is already trained.
+        We:
+        1) Get base_model predictions on X
+        2) Drop any samples where predictions or targets are NaN/inf
+        3) Optimize a, b in y_adj = a * y_pred + b to minimize asymmetric_mse_loss
+        4) Keep the transform only if it improves asymmetric loss by at least
+            self.min_improvement; otherwise fall back to identity.
         """
         # 1) Base predictions
         y_pred_np = self.base_model.predict(X)
-        y_true_np = np.asarray(y)
+        y_true_np = np.asarray(y, dtype=float)
 
-        # 2) Convert to tensors
+        # 2) Filter out NaNs / infs
+        mask = np.isfinite(y_pred_np) & np.isfinite(y_true_np)
+        num_valid = mask.sum()
+
+        if num_valid == 0:
+            if self.verbose:
+                print(
+                    "[AsymmetricPostHocRegressor] All predictions or targets are "
+                    "NaN/inf; skipping transform and using identity."
+                )
+            self.a_ = 1.0
+            self.b_ = 0.0
+            self.use_transform_ = False
+            return self
+
+        if num_valid < len(y_pred_np) and self.verbose:
+            print(
+                f"[AsymmetricPostHocRegressor] Warning: dropping "
+                f"{len(y_pred_np) - num_valid} samples with NaN/inf for post-hoc fit."
+            )
+
+        y_pred_np = y_pred_np[mask]
+        y_true_np = y_true_np[mask]
+
+        # 3) Convert to tensors
         y_pred = torch.tensor(y_pred_np, dtype=torch.float32)
         y_true = torch.tensor(y_true_np, dtype=torch.float32)
 
-        # 3) Baseline asymmetric loss (no transform)
+        # 4) Baseline asymmetric loss (no transform)
         with torch.no_grad():
             base_loss = asymmetric_mse_loss(y_pred, y_true, alpha=self.alpha).item()
 
-        # 4) Parameters for affine transform: y_adj = a * y_pred + b
+        # 5) Parameters for affine transform: y_adj = a * y_pred + b
         a = torch.nn.Parameter(torch.tensor(1.0))
         b = torch.nn.Parameter(torch.tensor(0.0))
 
@@ -111,15 +141,17 @@ class AsymmetricPostHocRegressor(BaseEstimator, RegressorMixin):
                     f"loss={loss.item():.6f} a={a.item():.4f} b={b.item():.4f}"
                 )
 
-        # 5) Final transformed loss
+        # 6) Final transformed loss
         with torch.no_grad():
             final_loss = asymmetric_mse_loss(a * y_pred + b, y_true, alpha=self.alpha).item()
 
         if self.verbose:
-            print(f"[{self.__class__.__name__}] base_loss={base_loss:.6f}, "
-                  f"posthoc_loss={final_loss:.6f}")
+            print(
+                f"[{self.__class__.__name__}] base_loss={base_loss:.6f}, "
+                f"posthoc_loss={final_loss:.6f}"
+            )
 
-        # 6) Decide whether to use transform
+        # 7) Decide whether to use transform
         if final_loss < base_loss - self.min_improvement:
             # Transformation helped
             self.a_ = float(a.detach().item())
@@ -133,9 +165,13 @@ class AsymmetricPostHocRegressor(BaseEstimator, RegressorMixin):
             self.b_ = 0.0
             self.use_transform_ = False
             if self.verbose:
-                print("Post-hoc transform did not improve loss; using base model outputs.")
+                print(
+                    "Post-hoc transform did not improve loss enough; "
+                    "using base model outputs (identity transform)."
+                )
 
         return self
+
 
     def predict(self, X):
         """
@@ -155,17 +191,17 @@ class AsymmetricPostHocRegressor(BaseEstimator, RegressorMixin):
 
 def eval_asymmetric_loss(model, X, y, alpha: float = 2.0) -> float:
     """
-    Compute asymmetric_mse_loss for a sklearn-like regressor.
-
-    Args:
-        model: regressor with .predict()
-        X, y: data
-        alpha: asymmetry parameter
-
-    Returns:
-        float: asymmetric loss
+    Compute asymmetric_mse_loss for a sklearn-like regressor,
+    ignoring NaNs / infs in predictions or targets.
     """
     y_pred = model.predict(X)
-    y_pred_t = torch.tensor(y_pred, dtype=torch.float32)
-    y_true_t = torch.tensor(np.asarray(y), dtype=torch.float32)
+    y_true = np.asarray(y, dtype=float)
+
+    mask = np.isfinite(y_pred) & np.isfinite(y_true)
+    if mask.sum() == 0:
+        return float("nan")
+
+    y_pred_t = torch.tensor(y_pred[mask], dtype=torch.float32)
+    y_true_t = torch.tensor(y_true[mask], dtype=torch.float32)
     return float(asymmetric_mse_loss(y_pred_t, y_true_t, alpha=alpha).item())
+
