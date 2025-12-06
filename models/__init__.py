@@ -11,7 +11,6 @@ from .model1 import LinearRegressionModel
 from .model2 import RandomForestModel
 from .model3 import XGBoostModel
 from .model4 import MLPModel
-from .model5 import TransformerModel
 
 __all__ = [
     "PersistenceModel",
