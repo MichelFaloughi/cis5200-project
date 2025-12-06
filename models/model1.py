@@ -1,7 +1,7 @@
 import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 
 EXCLUDE_COLUMNS = ['datetime', 'target_next_hour']
 
@@ -9,23 +9,23 @@ EXCLUDE_COLUMNS = ['datetime', 'target_next_hour']
 class LinearRegressionModel:
     name = "LinearRegression"
 
-    def __init__(self, fit_intercept=True, scaler=True):
+    def __init__(self, degree=2, alpha=10.0, scaler=True):
         steps = []
+
         if scaler:
-            steps.append(StandardScaler())
-        steps.append(LinearRegression(fit_intercept=fit_intercept))
+            steps.append(("scaler", StandardScaler()))
+        steps.append(("poly", PolynomialFeatures(degree=degree, include_bias=False)))
+        steps.append(("ridge", Ridge(alpha=alpha)))
 
-        if len(steps) == 1:
-            self.model = steps[0]
-        else:
-            self.model = make_pipeline(*steps)
-
+        self.model = Pipeline(steps)
         self.feature_cols = None
 
     def _prepare_features(self, X, fitting=False):
         if isinstance(X, pd.DataFrame):
             if fitting or self.feature_cols is None:
-                self.feature_cols = [col for col in X.columns if col not in EXCLUDE_COLUMNS]
+                self.feature_cols = [
+                    col for col in X.columns if col not in EXCLUDE_COLUMNS
+                ]
             X_features = X[self.feature_cols]
         else:
             X_features = X
@@ -39,4 +39,3 @@ class LinearRegressionModel:
     def predict(self, X):
         X_features = self._prepare_features(X)
         return self.model.predict(X_features)
-
