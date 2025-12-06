@@ -4,31 +4,53 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-def compute_metrics(y_true, y_pred):
+def asymmetric_mse_loss_numpy(y_pred, y_true, alpha=2.0):
     """
-    Compute standard regression metrics.
+    Compute asymmetric MSE loss for numpy arrays.
+    Penalizes under-predictions (y_pred < y_true) more than over-predictions.
+    
+    Args:
+        y_pred: Predicted values (numpy array)
+        y_true: True target values (numpy array)
+        alpha: Weight factor for under-predictions (alpha > 1)
+    
+    Returns:
+        Asymmetric MSE loss value
+    """
+    diff = y_pred - y_true
+    under_mask = (diff < 0).astype(float)
+    weights = 1.0 + (alpha - 1.0) * under_mask
+    return np.mean(weights * diff**2)
+
+
+def compute_metrics(y_true, y_pred, alpha=2.0):
+    """
+    Compute standard regression metrics and asymmetric MSE loss.
     
     Args:
         y_true: True target values
         y_pred: Predicted values
+        alpha: Weight factor for asymmetric loss (default 2.0)
     
     Returns:
-        dict with 'mae', 'rmse', 'r2' keys
+        dict with 'mae', 'rmse', 'r2', 'asymmetric_mse' keys
     """
     mae = mean_absolute_error(y_true, y_pred)
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     r2 = r2_score(y_true, y_pred)
+    asym_mse = asymmetric_mse_loss_numpy(y_pred, y_true, alpha=alpha)
     
     return {
         'mae': mae,
         'rmse': rmse,
-        'r2': r2
+        'r2': r2,
+        'asymmetric_mse': asym_mse
     }
 
 
  
 # TODO: Here is where we will have to pass our own models
-def evaluate(model, X_train, y_train, X_test, y_test, model_name=None):
+def evaluate(model, X_train, y_train, X_test, y_test, model_name=None, alpha=2.0):
     """
     Evaluate a model by training it and computing metrics.
     
@@ -37,6 +59,7 @@ def evaluate(model, X_train, y_train, X_test, y_test, model_name=None):
         X_train, y_train: Training data
         X_test, y_test: Test data
         model_name: Name of the model (defaults to model.__class__.__name__)
+        alpha: Weight factor for asymmetric loss evaluation (default 2.0)
     
     Returns:
         dict with 'model_name', 'metrics', 'predictions' keys
@@ -68,7 +91,7 @@ def evaluate(model, X_train, y_train, X_test, y_test, model_name=None):
         raise ValueError(f"All predictions are NaN for {model_name}")
     
     # Compute metrics only on valid predictions
-    metrics = compute_metrics(y_test_array[valid_mask], y_pred[valid_mask])
+    metrics = compute_metrics(y_test_array[valid_mask], y_pred[valid_mask], alpha=alpha)
     
     # Update predictions to keep NaN for alignment with original test set
     # (This allows plotting to handle NaN values appropriately)
@@ -179,11 +202,12 @@ def compare(results_list, plot=True):
             'Model': result['model_name'],
             'MAE (m/s)': metrics['mae'],
             'RMSE (m/s)': metrics['rmse'],
-            'R²': metrics['r2']
+            'R²': metrics['r2'],
+            'Asymmetric MSE': metrics['asymmetric_mse']
         })
     
     scorecard = pd.DataFrame(scorecard_data)
-    scorecard = scorecard.sort_values('RMSE (m/s)')  # Sort by RMSE (lower is better)
+    scorecard = scorecard.sort_values('Asymmetric MSE')  # Sort by asymmetric MSE (lower is better)
     
     # Print table
     print("\n" + "="*60)
@@ -194,13 +218,14 @@ def compare(results_list, plot=True):
     
     # Optional bar chart
     if plot and len(results_list) > 0:
-        fig, axes = plt.subplots(1, 3, figsize=(10, 4))
+        fig, axes = plt.subplots(1, 4, figsize=(14, 4))
         fig.suptitle('Model Comparison', fontsize=14, fontweight='bold')
         
         model_names = [r['model_name'] for r in results_list]
         maes = [r['metrics']['mae'] for r in results_list]
         rmses = [r['metrics']['rmse'] for r in results_list]
         r2s = [r['metrics']['r2'] for r in results_list]
+        asym_mses = [r['metrics']['asymmetric_mse'] for r in results_list]
         
         # MAE
         ax1 = axes[0]
@@ -228,6 +253,15 @@ def compare(results_list, plot=True):
         ax3.grid(True, alpha=0.3, axis='x')
         for i, (bar, val) in enumerate(zip(bars3, r2s)):
             ax3.text(val + max(r2s) * 0.01, i, f'{val:.4f}', va='center', fontsize=9)
+        
+        # Asymmetric MSE
+        ax4 = axes[3]
+        bars4 = ax4.barh(model_names, asym_mses, color='orange', edgecolor='black')
+        ax4.set_xlabel('Asymmetric MSE')
+        ax4.set_title('Asymmetric MSE (α=2.0)')
+        ax4.grid(True, alpha=0.3, axis='x')
+        for i, (bar, val) in enumerate(zip(bars4, asym_mses)):
+            ax4.text(val + max(asym_mses) * 0.01, i, f'{val:.4f}', va='center', fontsize=9)
         
         plt.tight_layout()
         plt.show()

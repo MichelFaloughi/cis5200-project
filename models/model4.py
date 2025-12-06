@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
+from tqdm.auto import tqdm
 from .custom_loss import asymmetric_mse_loss
 
 
@@ -34,13 +35,14 @@ class MLPModel:
     
     def __init__(self, hidden_layer_sizes=(200, 100), activation="relu", 
                  batch_size=64, n_epochs=500, learning_rate=1e-3, 
-                 alpha=2.0, random_state=42):
+                 alpha=2.0, random_state=42, verbose=True):
         self.hidden_layer_sizes = hidden_layer_sizes
         self.activation = activation
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.learning_rate = learning_rate
         self.alpha = alpha  # For asymmetric loss
+        self.verbose = verbose
         
         self.scaler = StandardScaler()
         self.model = None
@@ -93,10 +95,18 @@ class MLPModel:
         # Optimizer and loss function
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         
-        # Training loop
+        # Training loop with progress bar
         self.model.train()
-        for epoch in range(self.n_epochs):
+        
+        if self.verbose:
+            print(f"Training MLP on {self.device} with {len(dataloader)} batches per epoch...")
+        
+        epoch_iterator = tqdm(range(self.n_epochs), desc="Training MLP", disable=not self.verbose, 
+                              unit="epoch", miniters=1, mininterval=0.5)
+        
+        for epoch in epoch_iterator:
             epoch_loss = 0.0
+            num_batches = 0
             for batch_X, batch_y in dataloader:
                 optimizer.zero_grad()
                 predictions = self.model(batch_X)
@@ -104,10 +114,14 @@ class MLPModel:
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item()
+                num_batches += 1
             
-            if (epoch + 1) % 50 == 0:
-                avg_loss = epoch_loss / len(dataloader)
-                print(f"Epoch {epoch + 1}/{self.n_epochs}, Loss: {avg_loss:.4f}")
+            avg_loss = epoch_loss / num_batches if num_batches > 0 else 0.0
+            
+            # Update progress bar (this forces a refresh)
+            if self.verbose:
+                epoch_iterator.set_postfix({'Loss': f'{avg_loss:.4f}'})
+                epoch_iterator.refresh()  # Force immediate update
         
         return self
     
