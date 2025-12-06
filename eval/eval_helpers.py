@@ -161,12 +161,16 @@ def plot_predictions(y_true, y_pred, model_name="Model", datetime_index=None, fi
     # 2. Scatter plot
     ax2 = axes[1]
     ax2.scatter(y_true_plot, y_pred_plot, alpha=0.5, s=20)
-    min_val = min(y_true_plot.min(), y_pred_plot.min())
-    max_val = max(y_true_plot.max(), y_pred_plot.max())
-    ax2.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=2, label='Perfect')
+    # Use fixed axis limits for consistent comparison across models
+    # Wind speeds typically range 0-10 m/s, with some peaks up to 12 m/s
+    scatter_min = 0
+    scatter_max = 10
+    ax2.plot([scatter_min, scatter_max], [scatter_min, scatter_max], 'r--', linewidth=2, label='Perfect')
     ax2.set_xlabel('Actual (m/s)')
     ax2.set_ylabel('Predicted (m/s)')
     ax2.set_title('Scatter Plot')
+    ax2.set_xlim([scatter_min, scatter_max])
+    ax2.set_ylim([scatter_min, scatter_max])
     ax2.legend()
     ax2.grid(True, alpha=0.3)
     
@@ -183,20 +187,29 @@ def plot_predictions(y_true, y_pred, model_name="Model", datetime_index=None, fi
     return fig
 
 
-def compare(results_list, plot=True):
+def compare(results_list, plot=True, title_suffix=""):
     """
     Compare multiple models by creating a scorecard table and optional bar chart.
     
     Args:
         results_list: List of result dicts from evaluate()
         plot: Whether to create comparison bar chart
+        title_suffix: Optional suffix to add to the title (e.g., " (Calibrated Models)")
     
     Returns:
         pandas DataFrame with comparison metrics
     """
+    # Clean model names: remove "(Calibrated)" suffix for cleaner display
+    cleaned_results = []
+    for result in results_list:
+        cleaned_result = result.copy()
+        cleaned_name = result['model_name'].replace(' (Calibrated)', '')
+        cleaned_result['model_name'] = cleaned_name
+        cleaned_results.append(cleaned_result)
+    
     # Create scorecard DataFrame
     scorecard_data = []
-    for result in results_list:
+    for result in cleaned_results:
         metrics = result['metrics']
         scorecard_data.append({
             'Model': result['model_name'],
@@ -211,17 +224,18 @@ def compare(results_list, plot=True):
     
     # Print table
     print("\n" + "="*60)
-    print("MODEL COMPARISON")
+    print("MODEL COMPARISON" + title_suffix)
     print("="*60)
     print(scorecard.to_string(index=False))
     print("="*60)
     
     # Optional bar chart
-    if plot and len(results_list) > 0:
-        fig, axes = plt.subplots(1, 4, figsize=(14, 4))
-        fig.suptitle('Model Comparison', fontsize=14, fontweight='bold')
+    if plot and len(cleaned_results) > 0:
+        fig, axes = plt.subplots(1, 4, figsize=(16, 5))
+        comparison_title = 'Model Comparison' + title_suffix
+        fig.suptitle(comparison_title, fontsize=14, fontweight='bold')
         
-        model_names = [r['model_name'] for r in results_list]
+        model_names = [r['model_name'] for r in cleaned_results]
         maes = [r['metrics']['mae'] for r in results_list]
         rmses = [r['metrics']['rmse'] for r in results_list]
         r2s = [r['metrics']['r2'] for r in results_list]
@@ -233,6 +247,7 @@ def compare(results_list, plot=True):
         ax1.set_xlabel('MAE (m/s)')
         ax1.set_title('MAE')
         ax1.grid(True, alpha=0.3, axis='x')
+        ax1.tick_params(axis='y', labelsize=9)
         for i, (bar, val) in enumerate(zip(bars1, maes)):
             ax1.text(val + max(maes) * 0.01, i, f'{val:.4f}', va='center', fontsize=9)
         
@@ -242,6 +257,7 @@ def compare(results_list, plot=True):
         ax2.set_xlabel('RMSE (m/s)')
         ax2.set_title('RMSE')
         ax2.grid(True, alpha=0.3, axis='x')
+        ax2.tick_params(axis='y', labelsize=9)
         for i, (bar, val) in enumerate(zip(bars2, rmses)):
             ax2.text(val + max(rmses) * 0.01, i, f'{val:.4f}', va='center', fontsize=9)
         
@@ -251,6 +267,7 @@ def compare(results_list, plot=True):
         ax3.set_xlabel('R²')
         ax3.set_title('R²')
         ax3.grid(True, alpha=0.3, axis='x')
+        ax3.tick_params(axis='y', labelsize=9)
         for i, (bar, val) in enumerate(zip(bars3, r2s)):
             ax3.text(val + max(r2s) * 0.01, i, f'{val:.4f}', va='center', fontsize=9)
         
@@ -260,6 +277,7 @@ def compare(results_list, plot=True):
         ax4.set_xlabel('Asymmetric MSE')
         ax4.set_title('Asymmetric MSE (α=2.0)')
         ax4.grid(True, alpha=0.3, axis='x')
+        ax4.tick_params(axis='y', labelsize=9)
         for i, (bar, val) in enumerate(zip(bars4, asym_mses)):
             ax4.text(val + max(asym_mses) * 0.01, i, f'{val:.4f}', va='center', fontsize=9)
         
