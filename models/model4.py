@@ -10,7 +10,7 @@ from .custom_loss import asymmetric_mse_loss
 
 
 class MLPRegressor(nn.Module):
-    def __init__(self, n_features, hidden_layer_sizes=(200, 100), activation="relu"):
+    def __init__(self, n_features, hidden_layer_sizes=(8, 4), activation="relu"):
         super().__init__()
         layers = []
         input_size = n_features
@@ -41,7 +41,7 @@ class MLPModel:
 
     def __init__(
         self,
-        hidden_layer_sizes=(200, 100),
+        hidden_layer_sizes=(8, 4),
         activation="relu",
         batch_size=64,
         n_epochs=500,
